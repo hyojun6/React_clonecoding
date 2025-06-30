@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { Modal } from './modal/modal.tsx';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const MainPage = () => {
   const locations = ['동부산', '서부산'] as const;
@@ -11,7 +11,7 @@ const MainPage = () => {
     서부산: ['부산진구', '동구', '중구', '서구', '북구', '영도구', '사하구', '사상구', '강서구'],
   };
   const [selectedRegion, setSelectedRegion] = useState<Region>('동부산');
-  const [location, setLocation] = useState<string>(areaMap['동부산'][0]);
+  const [loc, setLocation] = useState<string>(areaMap['동부산'][0]);
   const categories = [
     '중고거래', '알바', '부동산', '중고차', '동네업체', '동네생활', '모임'
   ];
@@ -41,12 +41,28 @@ const MainPage = () => {
   //로그인 팝업페이지
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
-  //검색 이동
-  // const [search, setSearch] = useState('');
-  // const navigate = useNavigate();
-  // const handleSearch = () => {
-  //   navigate(`/search?loc=${encodeURIComponent(selectedRegion)}&location=${encodeURIComponent(location)}&keyword=${encodeURIComponent(search)}`);
-  // };
+  //카테고리 누르면 검색창에 적히는거
+  const [search, setSearch] = useState('');
+  const handleCategoryClick = (cate: string) => {
+    setSearch(cate)
+  }
+
+  // 검색
+  const navigate = useNavigate();
+  //const nowContent = useRef();
+
+  // const location = useLocation();
+  // const userInfo = { ...location.state };
+  
+  const handleProfile = () => {
+    navigate('/product', {
+      state: {
+        area: `${loc}`,
+        product: `${search}`
+      },
+    });
+  };
+  
 
   return (
     <div className="container">
@@ -54,11 +70,10 @@ const MainPage = () => {
         <div className="logo">🥕</div>
         <button onClick={()=> setModalIsOpen(true)} className='login-button'>로그인</button>
 	      <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} />
-
       </header>
 
       <main className="main-content">
-        <h1 className="headline">{location}에서 {word} 찾고 계신가요?</h1>
+        <h1 className="headline">{loc}에서 {word} 찾고 계신가요?</h1>
 
         <div className="search">
           <div className="location-select">
@@ -72,13 +87,18 @@ const MainPage = () => {
             </select>
           </div>
 
-          <input type="text" placeholder="검색어를 입력해주세요" className="searchi"/>
-          <button className="searchb">→</button>
+          <input type="text"
+            placeholder="검색어를 입력해주세요"
+            className="searchi"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button className="searchb" onClick={handleProfile}>→</button>
         </div>
 
         <div className="category">
           {categories.map((cate) => (
-            <button key={cate} className="categorys">{cate}</button>
+            <button key={cate} className="categorys" onClick={() => handleCategoryClick(cate)}>{cate}</button>
           ))}
         </div>
 
@@ -86,7 +106,7 @@ const MainPage = () => {
           {areaMap[selectedRegion].map((atag) => (
             <button
               key={atag}
-              className={`tag ${location === atag ? 'active' : ''}`}
+              className={`tag ${loc === atag ? 'active' : ''}`}
               onClick={() => handleTagClick(atag)}
             >
               {atag}
